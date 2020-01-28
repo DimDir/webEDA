@@ -103,13 +103,27 @@ if data_path is not None:
         st.write("model builder")
         x = st.radio('Choose the target:', (df.columns))
         st.write('Now target is: ', x)
+        
+        type_of_model = st.selectbox('Choose the model: ', ('KNN', 'Decition Tree', 'Logistic Regression', 'SVM', 'Random Forest'))
+        'Now model is: ', type_of_model
+
 
         if st.button('calculate'):
-            from sklearn.neighbors import KNeighborsClassifier
-            model = KNeighborsClassifier()
-            new_df = type_control(df)
-            X_train, X_valid, y_train, y_valid = split_df(new_df)
-            model.fit(X_train, y_train)
+            if type_of_model == 'KNN':
+                from sklearn.neighbors import KNeighborsClassifier
+                model = KNeighborsClassifier()
+                new_df = type_control(df)
+                X_train, X_valid, y_train, y_valid = split_df(new_df)
+                model.fit(X_train, y_train)
 
-            prediction = model.score(X_valid, y_valid)
-            st.write("Model accuracy: ", prediction)
+                prediction = model.score(X_valid, y_valid)
+                st.write("Model accuracy: ", prediction)
+           
+            elif type_of_model == 'Decition Tree':
+                    'Decition Tree Classifier'
+            elif type_of_model == 'Logistic Regression':
+                    'Logistic Regression algorithm'
+            elif type_of_model == 'SVM':
+                    'Support Vector Machine algorithm'
+            elif type_of_model == 'Random Forest':
+                    'Random Forest Classifier'
