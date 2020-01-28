@@ -10,7 +10,7 @@ import seaborn as sns
 # Use for splitting data for training models
 
 def split_df(df, beta=.7):
-    """Split DataFrame on tran and test subsets."""
+    """Split DataFrame on train and test subsets."""
     split = int(df.shape[0] * beta) 
     X = np.array(df.drop(x, axis=1))
     y = df[x]
@@ -28,7 +28,9 @@ def type_control(df):
 ###########
 
 data_path = st.sidebar.file_uploader('file', type='csv')
-analyse_option = st.sidebar.radio('Choose analysis type', ('Data statistics', 'Features Correlation', 'Box-plot', 'Distribution of features'))
+analyse_option = st.sidebar.radio('Choose analysis type', ('Data statistics', 'Features Correlation',
+                                                           'Box-plot', 'Distribution of features',
+                                                           'Model builder'))
 
 show_all = st.sidebar.checkbox('Show full analysis')
 st.title('Web exploratory data analysis')
@@ -53,8 +55,13 @@ if data_path is not None:
         ## Ratio of available data (not NAN's) in percent
         '''
         # add values in percent
-        data_ratios = (df.count() / len(df))
-        st.write(data_ratios * 100)
+        data_ratios = (df.count() / len(df))*100
+        #st.write(data_ratios * 100)
+        st.write(
+            f'<div style="float:left;height:200px;width:250px;border:solid 2px #ff0000;"><h2>Левый виджет</h2>{data_ratios}</div>'
+            f'<div style="float:left;height:200px;width:300px;border:solid 2px #00ff00;"><h2>Правый виджет</h2></div>',
+            unsafe_allow_html=True
+        )
 
     if analyse_option == 'Features Correlation' or show_all:
         '''
@@ -89,24 +96,20 @@ if data_path is not None:
         plt.xlabel(anal_col)
         st.pyplot()
 
-       
-        
-if st.sidebar.checkbox('model builder'):
-    
-    """
-    ## Constructor
-    """
-    
-    st.write("model builder")
-    x = st.radio('Choose the target:', (df.columns))
-    st.write('Now target is: ', x)
-    
-    if st.button('calculate'):
-        from sklearn.neighbors import KNeighborsClassifier
-        model = KNeighborsClassifier()
-        new_df = type_control(df)
-        X_train, X_valid, y_train, y_valid = split_df(new_df)
-        model.fit(X_train, y_train)
-       
-        prediction = model.score(X_valid, y_valid)
-        "Model accuracy: ", prediction
+    if analyse_option == 'Model builder' or show_all:
+        """
+        ## Constructor
+        """
+        st.write("model builder")
+        x = st.radio('Choose the target:', (df.columns))
+        st.write('Now target is: ', x)
+
+        if st.button('calculate'):
+            from sklearn.neighbors import KNeighborsClassifier
+            model = KNeighborsClassifier()
+            new_df = type_control(df)
+            X_train, X_valid, y_train, y_valid = split_df(new_df)
+            model.fit(X_train, y_train)
+
+            prediction = model.score(X_valid, y_valid)
+            st.write("Model accuracy: ", prediction)
