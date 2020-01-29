@@ -25,6 +25,15 @@ def type_control(df):
     df = df.select_dtypes(exclude='object')
     return df
 
+
+# model score
+
+def model_score(model_name):
+    model = model_name()
+    model.fit(X_train, y_train)
+    prediction = model.score(X_valid, y_valid)
+    return st.write("{} gives score: ".format(type_of_model), prediction)
+
 ###########
 
 data_path = st.sidebar.file_uploader('file', type='csv')
@@ -117,51 +126,30 @@ if data_path is not None:
                 X_train, X_valid, y_train, y_valid = split_df(new_df)
 
                 if type_of_model == 'KNN':
-
                     from sklearn.neighbors import KNeighborsClassifier
-                    model = KNeighborsClassifier()
-                    model.fit(X_train, y_train)
-                    prediction = model.score(X_valid, y_valid)
-                    st.write("Model accuracy: ", prediction)
+                    model_score(KNeighborsClassifier)
 
                 elif type_of_model == 'Decision Tree':
                     from sklearn.tree import DecisionTreeClassifier
-                    model = DecisionTreeClassifier()
-                    model.fit(X_train, y_train)
-                    predicton = model.score(X_valid, y_valid)
-                    "DecisionTree gives score: ", predicton
+                    model_score(DecisionTreeClassifier)
 
                 elif type_of_model == 'Logistic Regression':
                     from sklearn.linear_model import LogisticRegression
-                    model = LogisticRegression()
-                    model.fit(X_train, y_train)
-                    prediction = model.score(X_valid, y_valid)
-                    "LogisticRegression gives score: ", prediction
+                    model_score(LogisticRegression)
 
                 elif type_of_model == 'SVM':
                     from sklearn.svm import SVC
-                    model = SVC()
-                    model.fit(X_train, y_train)
-                    prediction = model.score(X_valid, y_valid)
-                    "SVM gives score: ", prediction
+                    model_score(SVC)
 
                 elif type_of_model == 'Random Forest':
                     from sklearn.ensemble import RandomForestClassifier
-                    model = RandomForestClassifier()
-                    model.fit(X_train, y_train)
-                    prediction = model.score(X_valid, y_valid)
-                    'RandomForest gives score; ', prediction
+                    model_score(RandomForestClassifier)
 
         elif type_of_research == "Regression":
 
             type_of_model = st.selectbox("Choose the type of Regressor:", ('Linear Regression', \
                                                                            'Polinomial Regression', \
                                                                            'Ridge Regression', 'Lasso Regression'))
-
             if st.button('CALCULATE'):
                 new_df = type_control(df)
                 X_train, X_valid, y_train, y_valid = split_df(new_df)
-                
-
-
-
