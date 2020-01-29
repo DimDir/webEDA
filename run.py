@@ -113,7 +113,14 @@ if data_path is not None:
         x = st.radio('Choose the Target:', (df.columns))
         st.write('Now target is: ', x)
 
+        # Advice for choosing type of Target
+        if df[x].dtypes == 'float':  # or ((x.dtypes == 'int') & ((x.nunique() / df.shape[0]) < .1)):
+            "Better choose one of the Regression models"
+        else:
+            "Better choose one of the Classification models"
+
         type_of_research = st.selectbox('Choose types of Target:', ('Classification', 'Regression'))
+
 
         if type_of_research == "Classification":
 
@@ -148,8 +155,20 @@ if data_path is not None:
         elif type_of_research == "Regression":
 
             type_of_model = st.selectbox("Choose the type of Regressor:", ('Linear Regression', \
-                                                                           'Polinomial Regression', \
-                                                                           'Ridge Regression', 'Lasso Regression'))
+                                                                           'Ridge Regression', \
+                                                                           'Lasso Regression'))
             if st.button('CALCULATE'):
                 new_df = type_control(df)
                 X_train, X_valid, y_train, y_valid = split_df(new_df)
+
+                if type_of_model == "Linear Regression":
+                    from sklearn.linear_model import LinearRegression
+                    model_score(LinearRegression)
+
+                elif type_of_model == "Ridge Regression":
+                    from sklearn.linear_model import Ridge
+                    model_score(Ridge)
+
+                elif type_of_model == "Lasso Regression":
+                    from sklearn.linear_model import Lasso
+                    model_score(Lasso)
