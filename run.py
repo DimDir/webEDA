@@ -101,29 +101,67 @@ if data_path is not None:
         ## Constructor
         """
         st.write("model builder")
-        x = st.radio('Choose the target:', (df.columns))
+        x = st.radio('Choose the Target:', (df.columns))
         st.write('Now target is: ', x)
-        
-        type_of_model = st.selectbox('Choose the model: ', ('KNN', 'Decition Tree', 'Logistic Regression', 'SVM', 'Random Forest'))
-        'Now model is: ', type_of_model
+
+        type_of_research = st.selectbox('Choose types of Target:', ('Classification', 'Regression'))
+
+        if type_of_research == "Classification":
+
+            type_of_model = st.selectbox('Choose the model of Classifaer: ', ('KNN', 'Decision Tree', 'Logistic Regression', 'SVM', 'Random Forest'))
+            'Now model is: ', type_of_model
 
 
-        if st.button('calculate'):
-            if type_of_model == 'KNN':
-                from sklearn.neighbors import KNeighborsClassifier
-                model = KNeighborsClassifier()
+            if st.button('calculate'):
                 new_df = type_control(df)
                 X_train, X_valid, y_train, y_valid = split_df(new_df)
-                model.fit(X_train, y_train)
 
-                prediction = model.score(X_valid, y_valid)
-                st.write("Model accuracy: ", prediction)
-           
-            elif type_of_model == 'Decition Tree':
-                    'Decition Tree Classifier'
-            elif type_of_model == 'Logistic Regression':
-                    'Logistic Regression algorithm'
-            elif type_of_model == 'SVM':
-                    'Support Vector Machine algorithm'
-            elif type_of_model == 'Random Forest':
-                    'Random Forest Classifier'
+                if type_of_model == 'KNN':
+
+                    from sklearn.neighbors import KNeighborsClassifier
+                    model = KNeighborsClassifier()
+                    model.fit(X_train, y_train)
+                    prediction = model.score(X_valid, y_valid)
+                    st.write("Model accuracy: ", prediction)
+
+                elif type_of_model == 'Decision Tree':
+                    from sklearn.tree import DecisionTreeClassifier
+                    model = DecisionTreeClassifier()
+                    model.fit(X_train, y_train)
+                    predicton = model.score(X_valid, y_valid)
+                    "DecisionTree gives score: ", predicton
+
+                elif type_of_model == 'Logistic Regression':
+                    from sklearn.linear_model import LogisticRegression
+                    model = LogisticRegression()
+                    model.fit(X_train, y_train)
+                    prediction = model.score(X_valid, y_valid)
+                    "LogisticRegression gives score: ", prediction
+
+                elif type_of_model == 'SVM':
+                    from sklearn.svm import SVC
+                    model = SVC()
+                    model.fit(X_train, y_train)
+                    prediction = model.score(X_valid, y_valid)
+                    "SVM gives score: ", prediction
+
+                elif type_of_model == 'Random Forest':
+                    from sklearn.ensemble import RandomForestClassifier
+                    model = RandomForestClassifier()
+                    model.fit(X_train, y_train)
+                    prediction = model.score(X_valid, y_valid)
+                    'RandomForest gives score; ', prediction
+
+        elif type_of_research == "Regression":
+
+            type_of_model = st.selectbox("Choose the type of Regressor:", ('Linear Regression', \
+                                                                           'Polinomial Regression', \
+                                                                           'Ridge Regression', 'Lasso Regression'))
+
+            if st.button('CALCULATE'):
+                new_df = type_control(df)
+                X_train, X_valid, y_train, y_valid = split_df(new_df)
+                
+
+
+
