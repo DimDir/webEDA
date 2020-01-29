@@ -4,11 +4,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+
 ########### List of functions
 
 
 # Use for splitting data for training models
-
+@st.cache
 def split_df(df, beta=.7):
     """Split DataFrame on train and test subsets."""
     split = int(df.shape[0] * beta) 
@@ -19,7 +28,7 @@ def split_df(df, beta=.7):
 
 
 # Control datasets on object's type
-
+@st.cache
 def type_control(df):
     """Delete types "object" from dataset."""
     df = df.select_dtypes(exclude='object')
@@ -35,6 +44,7 @@ def model_score(model_name):
     return st.write("{} gives score: ".format(type_of_model), prediction)
 
 ###########
+
 
 data_path = st.sidebar.file_uploader('file', type='csv')
 analyse_option = st.sidebar.radio('Choose analysis type', ('Data statistics', 'Features Correlation',
@@ -109,66 +119,40 @@ if data_path is not None:
         """
         ## Constructor
         """
+        model = None
         st.write("model builder")
-        x = st.radio('Choose the Target:', (df.columns))
+        x = st.radio('Choose the Target:', df.columns)
         st.write('Now target is: ', x)
 
         # Advice for choosing type of Target
         if df[x].dtypes == 'float':  # or ((x.dtypes == 'int') & ((x.nunique() / df.shape[0]) < .1)):
-            "Better choose one of the Regression models"
+            st.write("Better choose one of the Regression models")
         else:
-            "Better choose one of the Classification models"
+            st.write("Better choose one of the Classification models")
 
         type_of_research = st.selectbox('Choose types of Target:', ('Classification', 'Regression'))
 
-
         if type_of_research == "Classification":
-
-            type_of_model = st.selectbox('Choose the model of Classifaer: ', ('KNN', 'Decision Tree', 'Logistic Regression', 'SVM', 'Random Forest'))
-            'Now model is: ', type_of_model
-
-
-            if st.button('calculate'):
-                new_df = type_control(df)
-                X_train, X_valid, y_train, y_valid = split_df(new_df)
-
-                if type_of_model == 'KNN':
-                    from sklearn.neighbors import KNeighborsClassifier
-                    model_score(KNeighborsClassifier)
-
-                elif type_of_model == 'Decision Tree':
-                    from sklearn.tree import DecisionTreeClassifier
-                    model_score(DecisionTreeClassifier)
-
-                elif type_of_model == 'Logistic Regression':
-                    from sklearn.linear_model import LogisticRegression
-                    model_score(LogisticRegression)
-
-                elif type_of_model == 'SVM':
-                    from sklearn.svm import SVC
-                    model_score(SVC)
-
-                elif type_of_model == 'Random Forest':
-                    from sklearn.ensemble import RandomForestClassifier
-                    model_score(RandomForestClassifier)
+            type_of_model = st.selectbox('Choose the model of Classifier: ',
+                                         ('KNN', 'Decision Tree', 'Logistic Regression', 'SVM', 'Random Forest'))
+            st.write('Now model is: ', type_of_model)
+            model_cl_dict = {'KNN': KNeighborsClassifier, 'Decision Tree': DecisionTreeClassifier,
+                             'Logistic Regression': LogisticRegression, 'SVM': SVC,
+                             'Random Forest': RandomForestClassifier}
+            model = model_cl_dict.get(type_of_model)
 
         elif type_of_research == "Regression":
 
-            type_of_model = st.selectbox("Choose the type of Regressor:", ('Linear Regression', \
-                                                                           'Ridge Regression', \
+            type_of_model = st.selectbox("Choose the type of Regressor:", ('Linear Regression',
+                                                                           'Ridge Regression',
                                                                            'Lasso Regression'))
-            if st.button('CALCULATE'):
-                new_df = type_control(df)
-                X_train, X_valid, y_train, y_valid = split_df(new_df)
+            model_reg_dict = {'Linear Regression': LinearRegression, 'Ridge Regression': Ridge,
+                             'Lasso Regression': Lasso}
+            model = model_reg_dict.get(type_of_model)
 
-                if type_of_model == "Linear Regression":
-                    from sklearn.linear_model import LinearRegression
-                    model_score(LinearRegression)
+        if st.button('CALCULATE'):
+            new_df = type_control(df)
+            X_train, X_valid, y_train, y_valid = split_df(new_df)
 
-                elif type_of_model == "Ridge Regression":
-                    from sklearn.linear_model import Ridge
-                    model_score(Ridge)
-
-                elif type_of_model == "Lasso Regression":
-                    from sklearn.linear_model import Lasso
-                    model_score(Lasso)
+            if model is not None:
+                model_score(model)
