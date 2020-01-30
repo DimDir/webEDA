@@ -6,12 +6,12 @@ import seaborn as sns
 
 # preprocessing
 from sklearn.preprocessing import LabelEncoder
-
+from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
@@ -59,7 +59,7 @@ def model_score(model_name):
 data_path = st.sidebar.file_uploader('file', type='csv')
 analyse_option = st.sidebar.radio('Choose analysis type', ('Data statistics', 'Features Correlation',
                                                            'Box-plot', 'Distribution of features',
-                                                           'Model builder'))
+                                                           'Model builder', 'Feature Importance'))
 
 show_all = st.sidebar.checkbox('Show full analysis')
 st.title('Web exploratory data analysis')
@@ -127,11 +127,10 @@ if data_path is not None:
 
     if analyse_option == 'Model builder' or show_all:
         """
-        ## Constructor
+        ## Model builder
         """
         model = None
-        st.write("model builder")
-        x = st.radio('Choose the Target:', df.columns)
+        x = st.selectbox('Choose the Target:', df.select_dtypes(exclude='object').columns)
         st.write('Now target is: ', x)
 
         # Advice for choosing type of Target
@@ -140,7 +139,7 @@ if data_path is not None:
         else:
             st.write("Better choose one of the Classification models")
 
-        type_of_research = st.selectbox('Choose types of Target:', ('Classification', 'Regression'))
+        type_of_research = st.selectbox('Choose type of prediction:', ('Classification', 'Regression'))
 
         if type_of_research == "Classification":
             type_of_model = st.selectbox('Choose the model of Classifier: ',
@@ -161,9 +160,41 @@ if data_path is not None:
             model = model_reg_dict.get(type_of_model)
 
         if st.button('CALCULATE'):
-            new_df = type_control(df)
+            #new_df = type_control(df)
+            new_df = df.select_dtypes(exclude='object')
             X_train, X_valid, y_train, y_valid = split_df(new_df)
 
             if model is not None:
                 model_score(model)
+
+    if analyse_option == 'Feature Importance' or show_all:
+
+        """
+        ## Feature importance
+        """
+        model = None
+        target_name = st.selectbox('Choose the Target:', df.select_dtypes(exclude='object').columns)
+        type_of_research = st.selectbox('Choose type of prediction:', ('Classification', 'Regression'))
+        if type_of_research == 'Classification':
+            rf = RandomForestClassifier()
+        else:
+            rf = RandomForestRegressor()
+
+        new_df = df.select_dtypes(exclude='object')
+        target = new_df[target_name]
+        X = new_df.drop(target_name, axis=1)
+        X_train, X_valid, y_train, y_valid = train_test_split(X, target, test_size=0.8)
+
+        if st.button('Calculate default feature importance'):
+            rf.fit(X_train, y_train)
+            st.write('Training score: ', rf.score(X_train, y_train), 'Validation score:', rf.score(X_valid, y_valid))
+            """
+            ### Default feature importance
+            """
+            feat_importances = pd.Series(rf.feature_importances_, index=X_train.columns)
+            feat_importances.nlargest(10).plot(kind='barh')
+            st.pyplot()
+
+
+
 
