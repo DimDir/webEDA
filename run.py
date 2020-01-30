@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# preprocessing
+from sklearn.preprocessing import LabelEncoder
+
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
@@ -12,6 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
+
 
 ########### List of functions
 
@@ -31,8 +35,14 @@ def split_df(df, beta=.7):
 @st.cache
 def type_control(df):
     """Delete types "object" from dataset."""
-    df = df.select_dtypes(exclude='object')
-    return df
+    df_label = df.drop(x, axis=1)
+    if df_label.select_dtypes(include='object') is True:
+
+        for column in df_label.select_dtypes(exclude=['float', 'int']):
+            encoder = LabelEncoder()
+            df_label[f"{column}" + "_label"] = encoder.fit_transform(df_label[column])
+            df_label = df_label.select_dtypes(exclude=['object'])
+    return df_label.join(df[x])
 
 
 # model score
