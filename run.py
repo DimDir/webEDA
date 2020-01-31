@@ -7,6 +7,8 @@ import seaborn as sns
 # preprocessing
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
+
+# algorithms
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
@@ -15,6 +17,9 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
+
+# clustering algorithms
+from sklearn.cluster import KMeans
 
 
 ########### List of functions
@@ -57,7 +62,7 @@ def model_score(model_name):
 data_path = st.sidebar.file_uploader('file', type='csv')
 analyse_option = st.sidebar.radio('Choose analysis type', ('Data statistics', 'Features Correlation',
                                                            'Box-plot', 'Distribution of features',
-                                                           'Model builder', 'Feature Importance'))
+                                                           'Model builder', 'Feature Importance', 'Clustering'))
 
 show_all = st.sidebar.checkbox('Show full analysis')
 st.title('Web exploratory data analysis')
@@ -201,6 +206,41 @@ if data_path is not None:
             feat_importances = pd.Series(rf.feature_importances_, index=X_train.columns)
             feat_importances.nlargest(10).plot(kind='barh')
             st.pyplot()
+
+    if analyse_option == 'Clustering':
+
+        """
+        ## Clustering
+        """
+        x = st.selectbox('Choose the Target:', df.columns)
+        n_clusters = st.number_input(label="Choose number of clasters: ", min_value=1)
+        st.write("The number of clastets is: ", n_clusters)
+
+        data, target = df.drop(x, axis=1), df[x]
+        kmeans = KMeans(n_clusters=int(n_clusters))
+        kmeans.fit(data)
+        y_kmeans = kmeans.predict(data)
+        plt.scatter(x=data.iloc[:, 1], y=data.iloc[:, 2], c=y_kmeans)
+        st.pyplot()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
