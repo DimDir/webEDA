@@ -114,15 +114,22 @@ if data_path is not None:
         ## Distribution of features
         '''
         group_cols = st.multiselect('Choose columns for grouping', df.columns)
-        anal_col = st.selectbox('Choose column for analysis', [col for col in df.columns if df[col].dtype not in ['object']])
+        anal_col = st.selectbox('Choose column for analysis', df.columns) #[col for col in df.columns if df[col].dtype not in ['object']])
         if len(group_cols) > 0:
             df_gr = df.groupby(group_cols)[anal_col]
         else:
             df_gr = df[anal_col]
+
         df_gr.hist()
         plt.title('Distribution of {}'.format(anal_col))
         plt.xlabel(anal_col)
         st.pyplot()
+
+        if st.button("LOGARITHMIC HISTOGRAMM"):
+            df_lg = np.log(df[anal_col])
+            df_lg.hist()
+            plt.ylabel("log")
+            st.pyplot()
 
     if analyse_option == 'Model builder' or show_all:
         """
