@@ -22,27 +22,25 @@ from sklearn.linear_model import Lasso
 
 # Use for splitting data for training models
 @st.cache
-def split_df(df, beta=.7):
+def split_df(df, target, beta=.7):
     """Split DataFrame on train and test subsets."""
     split = int(df.shape[0] * beta) 
-    X = np.array(df.drop(x, axis=1))
-    y = df[x]
+    X = np.array(df.drop(target, axis=1))
+    y = df[target]
     X_train, X_valid, y_train, y_valid = X[:split], X[split:], y[:split], y[split:]
     return X_train, X_valid, y_train, y_valid
 
 
 # Control datasets on object's type
 @st.cache
-def type_control(df):
+def type_control(df, target):
     """Delete types "object" from dataset."""
-    df_label = df.drop(x, axis=1)
-    if df_label.select_dtypes(include='object') is True:
-
-        for column in df_label.select_dtypes(exclude=['float', 'int']):
-            encoder = LabelEncoder()
-            df_label[f"{column}" + "_label"] = encoder.fit_transform(df_label[column])
-            df_label = df_label.select_dtypes(exclude=['object'])
-    return df_label.join(df[x])
+    df_label = df.drop(target, axis=1)
+    # transform object features
+    for column in df_label.select_dtypes(include='object').columns:
+        encoder = LabelEncoder()
+        df_label[f"{column}" + "_lb"] = encoder.fit_transform(df_label[column])
+    return df_label.select_dtypes(exclude='object').join(df[target])
 
 
 # model score
@@ -109,7 +107,8 @@ if data_path is not None:
         col_for_box_y = st.selectbox('Choose y axis', [col for col in df.columns if df[col].dtype not in ['object']])
         sns.boxplot(x=col_for_box_x, y=col_for_box_y, data=df)
         st.pyplot()
-        
+
+    # Feature Distribution Histogram
     if analyse_option == 'Distribution of features' or show_all:
         '''
         ## Distribution of features
@@ -130,7 +129,8 @@ if data_path is not None:
         ## Model builder
         """
         model = None
-        x = st.selectbox('Choose the Target:', df.select_dtypes(exclude='object').columns)
+        x = st.selectbox('Choose the Target:', df.columns)
+        #x = st.selectbox('Choose the Target:', df.select_dtypes(exclude='object').columns)
         st.write('Now target is: ', x)
 
         # Advice for choosing type of Target
@@ -160,13 +160,13 @@ if data_path is not None:
             model = model_reg_dict.get(type_of_model)
 
         if st.button('CALCULATE'):
-            #new_df = type_control(df)
-            new_df = df.select_dtypes(exclude='object')
-            X_train, X_valid, y_train, y_valid = split_df(new_df)
+            new_df = type_control(df, x)
+            X_train, X_valid, y_train, y_valid = split_df(new_df, x)
 
             if model is not None:
                 model_score(model)
 
+    # Feature importance analysis
     if analyse_option == 'Feature Importance' or show_all:
 
         """
