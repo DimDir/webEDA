@@ -214,13 +214,17 @@ if data_path is not None:
         """
         x = st.selectbox('Choose the Target:', df.columns)
         n_clusters = st.number_input(label="Choose number of clasters: ", min_value=1)
-        st.write("The number of clastets is: ", n_clusters)
+        #st.write("The number of clastets is: ", n_clusters)
 
+        df = type_control(df, x)
         data, target = df.drop(x, axis=1), df[x]
         kmeans = KMeans(n_clusters=int(n_clusters))
         kmeans.fit(data)
         y_kmeans = kmeans.predict(data)
-        plt.scatter(x=data.iloc[:, 1], y=data.iloc[:, 2], c=y_kmeans)
+        col_for_box_x = st.selectbox('Choose x axis', [col for col in df.columns if df[col].dtype not in ['object']])
+        col_for_box_y = st.selectbox('Choose y axis', [col for col in df.columns if df[col].dtype not in ['object']])
+
+        plt.scatter(x=data[col_for_box_x], y=data[col_for_box_y], c=y_kmeans)
         st.pyplot()
 
 
