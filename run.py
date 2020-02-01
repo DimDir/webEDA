@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 
 # preprocessing
@@ -62,7 +63,8 @@ def model_score(model_name):
 data_path = st.sidebar.file_uploader('file', type='csv')
 analyse_option = st.sidebar.radio('Choose analysis type', ('Data statistics', 'Features Correlation',
                                                            'Box-plot', 'Distribution of features',
-                                                           'Model builder', 'Feature Importance', 'Clustering'))
+                                                           'Model builder', 'Feature Importance', 'Clustering 2D',
+                                                           'Clustering 3D'))
 
 show_all = st.sidebar.checkbox('Show full analysis')
 st.title('Web exploratory data analysis')
@@ -207,10 +209,10 @@ if data_path is not None:
             feat_importances.nlargest(10).plot(kind='barh')
             st.pyplot()
 
-    if analyse_option == 'Clustering':
+    if analyse_option == 'Clustering 2D':
 
         """
-        ## Clustering
+        ## Clustering 2D
         """
         x = st.selectbox('Choose the Target:', df.columns)
         n_clusters = st.number_input(label="Choose number of clasters: ", min_value=1)
@@ -227,25 +229,40 @@ if data_path is not None:
         plt.scatter(x=data[col_for_box_x], y=data[col_for_box_y], c=y_kmeans)
         st.pyplot()
 
+    if analyse_option == 'Clustering 3D':
 
+        """
+        ## Clustering 3D
+        """
+        x = st.selectbox('Choose the Target:', df.columns)
+        n_clusters = st.number_input(label="Choose number of clasters: ", min_value=1)
+        #st.write("The number of clastets is: ", n_clusters)
 
+        df = type_control(df, x)
+        data, target = df.drop(x, axis=1), df[x]
+        kmeans = KMeans(n_clusters=int(n_clusters))
+        kmeans.fit(data)
+        y_kmeans = kmeans.predict(data)
+        data[x] = y_kmeans
 
+        col_for_box_x = st.selectbox('Choose x axis', [col for col in df.columns if df[col].dtype not in ['object']])
+        col_for_box_y = st.selectbox('Choose y axis', [col for col in df.columns if df[col].dtype not in ['object']])
+        col_for_box_z = st.selectbox('Choose z axis', [col for col in df.columns if df[col].dtype not in ['object']])
 
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        target = x
+        target_values = np.unique(y_kmeans)
 
+        for unique in target_values:
+            ax.scatter(xs=data[data[target] == unique][col_for_box_x], ys=data[data[target] == unique][col_for_box_y], \
+                       zs = data[data[target] == unique][col_for_box_z], marker = 'o')
 
+        ax.set_xlabel(col_for_box_x)
+        ax.set_ylabel(col_for_box_y)
+        ax.set_zlabel(col_for_box_z)
 
-
-
-
-
-
-
-
-
-
-
-
-
+        st.pyplot()
 
 
 
