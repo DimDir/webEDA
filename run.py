@@ -18,6 +18,9 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
+from eli5.sklearn import PermutationImportance
+from sklearn.base import clone
+from lime import lime_tabular
 
 # clustering algorithms
 from sklearn.cluster import KMeans
@@ -58,6 +61,30 @@ def model_score(model_name):
     return st.write("{} gives score: ".format(type_of_model), prediction)
 
 ###########
+
+
+def drop_col_feat_imp(model, X_train, y_train, random_state=42):
+    # clone the model to have the exact same specification as the one initially trained
+    model_clone = clone(model)
+    # set random_state for comparability
+    model_clone.random_state = random_state
+    # training and scoring the benchmark model
+    model_clone.fit(X_train, y_train)
+    benchmark_score = model_clone.score(X_train, y_train)
+    # list for storing feature importances
+    importances = []
+
+    # iterating over all columns and storing feature importance (difference between benchmark and new model)
+    for col in X_train.columns:
+        model_clone = clone(model)
+        model_clone.random_state = random_state
+        model_clone.fit(X_train.drop(col, axis=1), y_train)
+        drop_col_score = model_clone.score(X_train.drop(col, axis=1), y_train)
+        importances.append(benchmark_score - drop_col_score)
+
+    return importances
+
+############################
 
 
 data_path = st.sidebar.file_uploader('file', type='csv')
@@ -189,6 +216,8 @@ if data_path is not None:
         model = None
         target_name = st.selectbox('Choose the Target:', df.select_dtypes(exclude='object').columns)
         type_of_research = st.selectbox('Choose type of prediction:', ('Classification', 'Regression'))
+        drop_col_feat_need = st.checkbox('Include calculation of drop column feature importance')
+        st.write('*Recommended only for small datasets due to the big computation cost')
         if type_of_research == 'Classification':
             rf = RandomForestClassifier()
         else:
@@ -199,7 +228,7 @@ if data_path is not None:
         X = new_df.drop(target_name, axis=1)
         X_train, X_valid, y_train, y_valid = train_test_split(X, target, test_size=0.8)
 
-        if st.button('Calculate default feature importance'):
+        if st.button('Calculate feature importance'):
             rf.fit(X_train, y_train)
             st.write('Training score: ', rf.score(X_train, y_train), 'Validation score:', rf.score(X_valid, y_valid))
             """
@@ -208,6 +237,48 @@ if data_path is not None:
             feat_importances = pd.Series(rf.feature_importances_, index=X_train.columns)
             feat_importances.nlargest(10).plot(kind='barh')
             st.pyplot()
+
+            """
+            ### Permutation feature importance
+            """
+
+            perm = PermutationImportance(rf, cv=None, refit=False, n_iter=50).fit(X_train, y_train)
+            perm_feat_importances = pd.Series(perm.feature_importances_, index=X_train.columns)
+            perm_feat_importances.nlargest(10).plot(kind='barh')
+            st.pyplot()
+
+            if drop_col_feat_need:
+                """
+                ### Drop column feature importance
+                """
+                drop_col_feats = drop_col_feat_imp(rf, X_train, y_train)
+                drop_col_importances = pd.Series(drop_col_feats, index=X_train.columns)
+                drop_col_importances.nlargest(10).plot(kind='barh')
+                st.pyplot()
+
+            """
+            ### LIME (Local Interpretable Model-agnostic Explanations)
+            """
+
+            explainer = lime_tabular.LimeTabularExplainer(X_train.values,
+                                                          mode='regression',
+                                                          feature_names=X_train.columns,
+                                                          categorical_features=[3],
+                                                          categorical_names=['CHAS'],
+                                                          discretize_continuous=True)
+
+            np.random.seed(42)
+            for row in [30, 80]:
+                st.write('Explanation for row № ', row)
+                exp = explainer.explain_instance(X_train.values[row], rf.predict, num_features=5)
+                #exp.show_in_notebook(show_all=False)  # only the features used in the explanation are displayed
+                exp.as_pyplot_figure()
+                plt.tight_layout()
+                st.pyplot()
+
+
+
+
 
     if analyse_option == 'Clustering 2D':
 
