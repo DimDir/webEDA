@@ -8,8 +8,10 @@ import seaborn as sns
 # preprocessing
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 
 # algorithms
+from catboost import CatBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
@@ -91,7 +93,7 @@ data_path = st.sidebar.file_uploader('file', type='csv')
 analyse_option = st.sidebar.radio('Choose analysis type', ('Data statistics', 'Features Correlation',
                                                            'Box-plot', 'Distribution of features',
                                                            'Model builder', 'Feature Importance', 'Clustering 2D',
-                                                           'Clustering 3D'))
+                                                           'Clustering 3D', 'Boosting models'))
 
 show_all = st.sidebar.checkbox('Show full analysis')
 st.title('Web exploratory data analysis')
@@ -334,6 +336,25 @@ if data_path is not None:
         ax.set_zlabel(col_for_box_z)
 
         st.pyplot()
+
+    if analyse_option == 'Boosting models':
+        x = st.selectbox('Choose the Target:', df.columns)
+        df = type_control(df, x)
+        df = df.sample(frac=1)
+        boost_model = st.selectbox('Choose model: ', ['XGBoost', 'LightGBM', 'CatBoost'])
+
+        if boost_model == 'CatBoost':
+
+            iterations = st.number_input(label="Choose number of iterations: ", min_value=100)
+            learning_rate = st.number_input(label="Choose number of learning rate : ", min_value=50)
+            depth = st.number_input(label='Choose depth: ', min_value=2)
+
+            X_train, X_valid, y_train, y_valid = split_df(df, x)
+            model = CatBoostClassifier()
+            model.fit(X_train, y_train)
+            st.write(y_train)
+            prediction = model.predict(X_valid)
+            'F1 score: ', f1_score(y_valid, prediction)
 
 
 
