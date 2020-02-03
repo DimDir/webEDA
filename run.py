@@ -24,6 +24,8 @@ from eli5.sklearn import PermutationImportance
 from sklearn.base import clone
 from lime import lime_tabular
 
+from PIL import Image
+
 # clustering algorithms
 from sklearn.cluster import KMeans
 
@@ -88,6 +90,8 @@ def drop_col_feat_imp(model, X_train, y_train, random_state=42):
 
 ############################
 
+#image = Image.open('D:\programming\webEDA\mtf.jpg')
+#st.image(image, use_column_width=True)
 
 data_path = st.sidebar.file_uploader('file', type='csv')
 analyse_option = st.sidebar.radio('Choose analysis type', ('Data statistics', 'Features Correlation',
@@ -338,6 +342,27 @@ if data_path is not None:
         st.pyplot()
 
     if analyse_option == 'Boosting models':
+
+        st.deck_gl_chart(viewport={
+                                    'latitude': 48.37741,
+                                    'longitude': 17.58723,
+                                    'zoom': 11,
+                                    'pitch':50
+                                    },
+                                    layers=[{
+                                        'type': 'HexagonLayer',
+                                        'data': df,
+                                        'radius': 200,
+                                        'elevationScale': 4,
+                                        'elevationRange': [0, 100],
+                                        'pickable': True,
+                                        'extruded': True,
+                                    },
+                                        {'type': "LineLayer",
+                                            'data': df}
+                                    ])
+
+
         x = st.selectbox('Choose the Target:', df.columns)
         df = type_control(df, x)
         df = df.sample(frac=1)
